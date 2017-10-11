@@ -1,0 +1,27 @@
+{
+  "name": "cv_creator",
+  "version": "1.0.0",
+  "description": "help to create cv easily",
+  "main": "server.js",
+  "dependencies": {
+    "express": "^4.16.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node server.js",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/mucahiddayan/cvCreator.git"
+  },
+  "keywords": [
+    "cv-creator"
+  ],
+  "author": "muecahiddayan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/mucahiddayan/cvCreator/issues"
+  },
+  "homepage": "https://github.com/mucahiddayan/cvCreator#readme"
+}
