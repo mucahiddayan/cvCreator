@@ -4,12 +4,16 @@
   "description": "help to create cv easily",
   "main": "server.js",
   "dependencies": {
-    "express": "^4.16.2"
+    "express": "^4.16.2",
+    "fs": "0.0.1-security",
+    "multer": "^1.3.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "nodemon": "*"
+  },
   "scripts": {
     "test": "node server.js",
-    "start": "node server.js"
+    "start": "nodemon server.js"
   },
   "repository": {
     "type": "git",
