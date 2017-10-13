@@ -5,13 +5,22 @@
 var app = angular.module('cvCreator',[]);
 
 app.controller('mainController',['$scope','$http',($scope,$http)=>{
+    
+    $scope.fonts = fonts;
+   
+    $scope.getPersonal = ()=>{
+        var defaults = {
+            name : 'Mücahid Dayan',
+            prof : 'webdeveloper',
+            email: 'muecahid@dayan.one',
+            phone: '01776505421',
+            homepage:'https://mücahiddayan.com'
+        };
+        return typeof localStorage.personal == 'undefined'?defaults:Object.assign(defaults,JSON.parse(localStorage.personal));
+    }
+    
     $scope.img_src = typeof localStorage.avatar == 'undefined'?'':localStorage.avatar;
-    $scope.personal = {
-        name : 'Mücahid Dayan',
-        desc : 'webdeveloper',
-        email: 'muecahid@dayan.one',
-        phone: '01776505421'
-    };
+    $scope.personal = $scope.getPersonal();
 
     $scope.uploadImg = (e)=>{        
         var file = document.createElement('input');
@@ -35,7 +44,7 @@ app.controller('mainController',['$scope','$http',($scope,$http)=>{
                 console.warn(err);
             });
         }       
-    }
+    };
 
     $scope.resizeCallback = ()=>{
         document.querySelector('#img-wrapper').style.height = document.querySelector('left').clientWidth+'px';        
@@ -57,6 +66,12 @@ app.directive('left',()=>{
     };
 });
 
+app.directive('right',()=>{
+    return {
+        templateUrl:'templates/a4_right.html'
+    };
+});
+
 app.directive('avatar',()=>{
     return {
         templateUrl:'templates/a4_avatar.html'
@@ -69,22 +84,128 @@ app.directive('personal',()=>{
     };
 });
 
+app.directive('fontSelector',['$filter',($filter)=>{
+    let link = (scope,el,attrs)=>{        
+       scope.opened = false;
+       scope.selected = 'address-card';
+        scope.openBox = ()=>{
+            scope.opened = !scope.opened;            
+        }
+        scope.select = (select)=>{
+            scope.selected = select;
+            scope.openBox();
+        }
+                
+        
+    }
+
+    let template = (el,attr)=>{
+        return `<div class="font-selector-wrapper">        
+        <div class="selected" ng-click="openBox()"><i class="fa fa-{{selected}}"></i></div>
+        <div class="font-selector" ng-class="{'opened':opened}">
+        <input type="text" class="search" ng-model="search">            
+        <div class="font-item" ng-repeat="f in fonts | filter:search track by $index" ng-click="select(f)" title="{{f}}"><i  class="fa fa-{{f}}"></i></div>
+        </div>
+    </div>`
+    }
+    return{
+        restrict:'E',
+        scope: {
+            fonts: '=',            
+        },
+        link:link,
+        template:template
+    }
+}]);
+
 app.directive('cvEditable',()=>{
+    let personal = {};
     
     let link=(scope,element,attrs)=>{
-        let el = element[0];
-        el.addEventListener('dblclick',_=>{
-            el.insertAdjacentHTML('afterend',`<input class="edit-field" type="text" value="${el.innerText}">`);
-            el.style.display = 'none';
-            let input = el.nextElementSibling;
-            input.addEventListener('keydown',e=>{
-                if(e.key == 'Enter'){
-                    el.innerText = input.value;
-                    input.style.display = 'none';
-                    el.style.display = '';
-                }
-            });
+        let el = element[0];        
+        el.addEventListener('dblclick',_=>{            
+            createInput(el);
         });
+    }
+
+    let createInput = el=>{
+        let editField = el.nextSibling;
+        let textLength = el.innerText.length;
+        var input;
+        if(editField && /\edit\-field/.test(editField.className)){
+            editField.style.display = '';
+            input = editField;            
+        }else{
+            var type = 'input'
+            if(textLength > 60){
+                type = 'textarea';
+            }
+            input = document.createElement(type);
+            input.type = 'text';
+            input.className = 'edit-field';
+            input.dataset.for = el.dataset.type;
+            input.value = el.innerText;
+            input.style.display = '';
+            el.insertAdjacentElement('afterend',input);
+        }
+        setTimeout(function() {
+            input.focus();
+        }, 500);
+        el.style.display = 'none';
+        input.addEventListener('keydown',e=>{
+            if(e.key == 'Enter'){
+                save(el,input);
+            }
+            if(e.key == 'Tab' && !e.shiftKey){
+                save(el,input);
+                goToNext(el,input);
+            }
+            if(e.key == 'Tab' && e.shiftKey){
+                save(el,input);
+                goToPrev(el,input);
+            }
+                // console.log(e.key);            
+        });  
+    }
+
+    let init = (el)=>{
+        
+    }
+
+    let save = (el,input)=>{
+        el.innerText = input.value;
+        personal[el.dataset.type] = el.innerText;
+        input.remove();
+        el.style.display = '';
+        update();
+    }
+
+    let goToNext = (el,input) =>{
+        let next = el.next('[cv-editable]');
+        if(next){
+            console.log(next);
+            createInput(next);
+        }
+        
+    }
+
+    let goToPrev = (el,input) =>{
+        let next = el.prev('[cv-editable]');
+        if(next){
+            console.log(next);
+            createInput(next);
+        }
+        
+    }
+
+    let update = el=>{        
+        var temp = typeof localStorage.personal == 'undefined' ||
+                          localStorage.personal == '' || 
+                          localStorage.personal == null || 
+                          localStorage.personal == 'null'
+                                            ?{}:JSON.parse(localStorage.personal);        
+        console.log(personal,temp);
+        localStorage.personal=JSON.stringify(Object.assign(temp,personal));
     }
 
     return {
@@ -242,3 +363,26 @@ app.directive('resizable', function() {
     };
 });
 
+HTMLElement.prototype.prev = function(sel){
+    var pr = this.previousElementSibling;
+    var el;
+    if(!pr)return;
+	if(pr.matches(sel)){
+		el= pr;
+    }else{
+        return pr.prev(sel);
+    }
+    return el;
+}
+
+HTMLElement.prototype.next = function(sel){
+    var pr = this.nextElementSibling;
+    var el;
+    if(!pr)return;
+	if(pr.matches(sel)){
+		el= pr;
+    }else{
+        return pr.next(sel);
+    }
+    return el;
+}
