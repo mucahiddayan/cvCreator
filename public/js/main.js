@@ -102,7 +102,7 @@ app.directive('fontSelector',['$filter',($filter)=>{
     let template = (el,attr)=>{
         return `<div class="font-selector-wrapper">        
         <div class="selected" ng-click="openBox()"><i class="fa fa-{{selected}}"></i></div>
-        <div class="font-selector" ng-class="{'opened':opened}">
+        <div class="font-selector" ng-show="opened" ng-class="{'opened':opened}">
         <input type="text" class="search" ng-model="search">            
         <div class="font-item" ng-repeat="f in fonts | filter:search track by $index" ng-click="select(f)" title="{{f}}"><i  class="fa fa-{{f}}"></i></div>
         </div>
@@ -157,12 +157,16 @@ app.directive('cvEditable',()=>{
                 save(el,input);
             }
             if(e.key == 'Tab' && !e.shiftKey){
+                e.preventDefault();
                 save(el,input);
                 goToNext(el,input);
+                
             }
             if(e.key == 'Tab' && e.shiftKey){
+                e.preventDefault();
                 save(el,input);
                 goToPrev(el,input);
+               
             }
                 // console.log(e.key);            
         });  
@@ -181,7 +185,7 @@ app.directive('cvEditable',()=>{
     }
 
     let goToNext = (el,input) =>{
-        let next = el.next('[cv-editable]');
+        let next = getNextEditable(el);
         if(next){
             console.log(next);
             createInput(next);
@@ -190,7 +194,7 @@ app.directive('cvEditable',()=>{
     }
 
     let goToPrev = (el,input) =>{
-        let next = el.prev('[cv-editable]');
+        let next = getPrevEditable(el);
         if(next){
             console.log(next);
             createInput(next);
@@ -385,4 +389,73 @@ HTMLElement.prototype.next = function(sel){
         return pr.next(sel);
     }
     return el;
+}
+
+function getNextEditable(el){
+    var sel = '[cv-editable]';
+    console.log(el);
+    var next = el.next(sel);
+    var temp;
+
+    
+    if(!next){
+        console.log('sibling -> child');
+        temp =  el.nextElementSibling;
+        if(temp){
+            next = temp.querySelector(sel);
+        }        
+    }
+    if(!next){
+        console.log('parent -> sibling -> child');
+        temp =  el.parentElement;
+        if(temp){
+            temp = temp.nextElementSibling;
+        }
+        if(temp){
+            next = temp.querySelector(sel);
+        }
+    }
+    if(!next){
+        console.log('parent -> sibling');
+        temp =  el.parentElement;
+        if(temp){
+            next = temp.next(sel);
+        }        
+    }    
+    return next;
+}
+
+function getPrevEditable(el){
+    var sel = '[cv-editable]';
+    console.log(el);
+    console.log('sibling');
+    var prev = el.prev(sel);
+    var temp;
+
+    
+    if(!prev){
+        console.log('sibling -> child');
+        temp =  el.previousElementSibling;
+        if(temp){
+            prev = temp.querySelector(sel);
+        }        
+    }
+    if(!prev){
+        console.log('parent -> sibling -> child');
+        temp =  el.parentElement;
+        if(temp){
+            temp = temp.previousElementSibling;
+        }
+        if(temp){
+            prev = temp.querySelector(sel);
+        }
+    }
+    if(!prev){
+        console.log('parent -> sibling');
+        temp =  el.parentElement;
+        if(temp){
+            prev = temp.prev(sel);
+        }        
+    } 
+    return prev;
 }
