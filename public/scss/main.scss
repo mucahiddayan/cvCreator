@@ -131,10 +131,19 @@ a4{
         outline: none;
     }
     
+    .add-rating-wrapper {
+        text-align: center;
+        padding: 5px;
+    }
+
     #rate-circle {
-        text-align: right;
         display: block;
         position: relative;
+
+        .circles-wrapper {
+            width: 80%;
+            margin-left: 32%;
+        }
 
         label.ng-binding {
             position: absolute;

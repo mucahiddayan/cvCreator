@@ -97,10 +97,15 @@ a4 {
     border: none;
     border-bottom: 1px solid #1acee6;
     outline: none; }
+  a4 .add-rating-wrapper {
+    text-align: center;
+    padding: 5px; }
   a4 #rate-circle {
-    text-align: right;
     display: block;
     position: relative; }
+    a4 #rate-circle .circles-wrapper {
+      width: 80%;
+      margin-left: 32%; }
     a4 #rate-circle label.ng-binding {
       position: absolute;
       top: 1px;

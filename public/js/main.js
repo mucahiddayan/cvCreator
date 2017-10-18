@@ -43,7 +43,7 @@ app.controller('mainController',['$scope','$http',($scope,$http)=>{
     $scope.resizeCallback = ()=>{
         document.querySelector('#img-wrapper').style.height = document.querySelector('left').clientWidth+'px';        
     }
-
+    
     $scope.save = (msg)=>{
         console.log(msg);
     }
@@ -91,30 +91,36 @@ app.directive('rating',()=>{
 app.directive('rate',()=>{
     let link = (scope,el,atts)=>{
         scope.personal = getPersonal();
-        scope.skills = scope.personal.skills
-        let skills = {};
+        scope.skills = scope.personal.skills        
         
         scope.add = ()=>{
             var sk = prompt('Add skill:point');
             if(sk && /:/.test(sk)){
-                skills[sk.split(':')[0]] = sk.split(':')[1];
-                scope.personal.skills = skills;
-                scope.skills = skills;
+                var skill = {};
+                skill[sk.split(':')[0]] = sk.split(':')[1];                
+                scope.skills.push(skill);
+                scope.personal.skills = scope.skills;
                 updatePersonal(scope.personal);
             }
-        }        
+        }
 
-
+        scope.rate = (el)=>{
+            var pr = prompt('Rate');
+            if(isNaN(pr)){alert('Bitte Zahl eingeben');scope.rate(el);return;}
+            console.log(scope.skills);
+            // scope.skills[el].rate = parseInt(pr);            
+        }
     }
-
+    
     let template = (el,attr)=>{
-        return `<span class="add-rating" ng-click="add()"><i class="fa fa-plus"></i></span>
-        <div class="rating" id="rate-circle" ng-repeat="(name,rate) in skills">
-        <label cv-editable data-type="skills.{{name}}" class="cv-editable">{{name}}</label>
-        <svg ng-repeat="i in []|range:rate"  id="radialrate" class="radialrate" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0" y="0">
-        <circle id="radialrate-fill" class="radialprogress-fill" ng-click="change()"></circle>
-        </svg>
-        <span class="add-rating" ng-click="add()"><i class="fa fa-plus"></i></span>
+        return `<div class="add-rating-wrapper"><span class="add-rating" ng-click="add()"><i class="fa fa-plus"></i></span></div>
+        <div class="rate-circle-wrapper" id="rate-circle" ng-repeat="(i,skill) in skills track by $index">
+        <label cv-editable data-type="skills.{{i}}.label" class="cv-editable">{{skill.label}}</label>
+        <div class="circles-wrapper">
+        <svg ng-repeat="i in []|range:skill.rate" ng-click="rate(skill.label)" id="radialrate" class="radialrate" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0" y="0">
+        <circle id="radialrate-fill" class="radialprogress-fill"></circle>
+        </svg>        
+        </div>
         </div>`;
     }
     return{
@@ -149,8 +155,6 @@ app.directive('fontSelector',['$filter',($filter)=>{
         
     }
     
-    
-    
     let template = (el,attr)=>{
         return `<div class="font-selector-wrapper">        
         <div class="selected" ng-click="openBox()"><i class="fa fa-{{selected}}"></i></div>
@@ -174,20 +178,21 @@ app.directive('fontSelector',['$filter',($filter)=>{
 
 app.directive('cvEditable',[(PERSONAL)=>{
     let personal = getPersonal();
-    let scp;
+    let input_;
+    let cb_;
     
     let link=(scope,element,attrs)=>{
         let el = element[0];        
         el.addEventListener('dblclick',_=>{            
             createInput(el);
         });
-        scp = scope;
+        cb_ = scope.cb;    
     }
     
     let createInput = (el)=>{
         let editField = el.nextSibling;
         let textLength = el.innerText.length;
-        var input;
+        
         if(editField && /\edit\-field/.test(editField.className)){
             editField.style.display = '';
             input = editField;            
@@ -196,53 +201,54 @@ app.directive('cvEditable',[(PERSONAL)=>{
             if(textLength > 60){
                 type = 'textarea';
             }
-            input = document.createElement(type);
-            input.type = 'text';
-            input.className = 'edit-field';
-            input.dataset.for = el.dataset.type;
-            input.value = el.innerText;
-            input.style.display = '';
-            el.insertAdjacentElement('afterend',input);
+            input_ = document.createElement(type);
+            input_.type = 'text';
+            input_.className = 'edit-field';
+            input_.dataset.for = el.dataset.type;
+            input_.value = el.innerText;
+            input_.style.display = '';
+            el.insertAdjacentElement('afterend',input_);
         }
         setTimeout(function() {
-            input.focus();
+            input_.focus();
         }, 500);
         el.style.display = 'none';
-        input.addEventListener('keydown',e=>{
+        input_.addEventListener('keydown',e=>{
             if(e.key == 'Enter'){
-                save(el,input);
-                scp.cb();
+                save(el);                
             }
             if(e.key == 'Escape'){
                 closeEditable(input,el);
             }
             if(e.key == 'Tab' && !e.shiftKey){
                 e.preventDefault();
-                save(el,input);
-                scp.cb();
-                goToNext(el,input);
+                save(el);
+                
+                goToNext(el);
                 
             }
             if(e.key == 'Tab' && e.shiftKey){
                 e.preventDefault();
-                save(el,input);
-                scp.cb();
-                goToPrev(el,input);
+                save(el);
+                
+                goToPrev(el);
                 
             }
             // console.log(e.key);            
         });  
     }
     
-    let closeEditable = (inp,el)=>{
-        inp.remove();
+    let closeEditable = (el)=>{
+        input_.remove();
         el.style.display = '';
     }
     
-    let save = (el,input)=>{
-        el.innerText = input.value;
-        personal[el.dataset.type].val = el.innerText;
-        closeEditable(input,el);        
+    let save = (el)=>{
+        el.innerText = input_.value;
+        console.log(personal[el.dataset.type]);
+        initToObject(personal,el.dataset.type,el.innerText)
+        // personal[el.dataset.type].val = el.innerText;
+        closeEditable(el);        
         update();
     }
     
@@ -274,155 +280,6 @@ app.directive('cvEditable',[(PERSONAL)=>{
         }
     };
 }]);
-
-/**
-* @author A PEN BY CAPTAIN ANONYMOUS
-*/
-app.directive('resizable', function() {
-    var toCall;
-    function throttle(fun) {
-        if (toCall === undefined) {
-            toCall = fun;
-            setTimeout(function() {
-                toCall();
-                toCall = undefined;
-            }, 100);
-        } else {
-            toCall = fun;
-        }
-    }
-    return {
-        restrict: 'AE',
-        scope: {
-            rDirections: '=',
-            rCenteredX: '=',
-            rCenteredY: '=',
-            rWidth: '=',
-            rHeight: '=',
-            rFlex: '=',
-            rGrabber: '@',
-            rDisabled: '@',
-            rCb:'&'
-        },
-        link: function(scope, element, attr) {
-            var flexBasis = 'flexBasis' in document.documentElement.style ? 'flexBasis' :
-            'webkitFlexBasis' in document.documentElement.style ? 'webkitFlexBasis' :
-            'msFlexPreferredSize' in document.documentElement.style ? 'msFlexPreferredSize' : 'flexBasis';
-            
-            // register watchers on width and height attributes if they are set
-            scope.$watch('rWidth', function(value){
-                element[0].style.width = scope.rWidth + 'px';
-            });
-            scope.$watch('rHeight', function(value){
-                element[0].style.height = scope.rHeight + 'px';
-            });
-            
-            element.addClass('resizable');
-            
-            var style = window.getComputedStyle(element[0], null),
-            w,
-            h,
-            dir = scope.rDirections,
-            vx = scope.rCenteredX ? 2 : 1, // if centered double velocity
-            vy = scope.rCenteredY ? 2 : 1, // if centered double velocity
-            inner = scope.rGrabber ? scope.rGrabber : '<span></span>',
-            start,
-            dragDir,
-            axis,
-            info = {};
-            
-            var updateInfo = function(e) {
-                info.width = false; info.height = false;
-                if(axis === 'x')
-                info.width = parseInt(element[0].style[scope.rFlex ? flexBasis : 'width']);
-                else
-                info.height = parseInt(element[0].style[scope.rFlex ? flexBasis : 'height']);
-                info.id = element[0].id;
-                info.evt = e;
-            };
-            
-            var dragging = function(e) {
-                var prop, offset = axis === 'x' ? start - e.clientX : start - e.clientY;
-                switch(dragDir) {
-                    case 'top':
-                    prop = scope.rFlex ? flexBasis : 'height';
-                    element[0].style[prop] = h + (offset * vy) + 'px';
-                    break;
-                    case 'bottom':
-                    prop = scope.rFlex ? flexBasis : 'height';
-                    element[0].style[prop] = h - (offset * vy) + 'px';
-                    break;
-                    case 'right':
-                    prop = scope.rFlex ? flexBasis : 'width';
-                    element[0].style[prop] = w - (offset * vx) + 'px';
-                    break;
-                    case 'left':
-                    prop = scope.rFlex ? flexBasis : 'width';
-                    element[0].style[prop] = w + (offset * vx) + 'px';
-                    break;
-                }
-                updateInfo(e);
-                throttle(function() { scope.$emit('angular-resizable.resizing', info);});
-                if(typeof scope.rCb == 'function'){
-                    scope.rCb();
-                }
-            };
-            var dragEnd = function(e) {
-                updateInfo();
-                scope.$emit('angular-resizable.resizeEnd', info);
-                scope.$apply();
-                document.removeEventListener('mouseup', dragEnd, false);
-                document.removeEventListener('mousemove', dragging, false);
-                element.removeClass('no-transition');
-                if(typeof scope.rEndCb == 'function'){
-                    scope.rEndCb();
-                }
-                
-            };
-            var dragStart = function(e, direction) {
-                dragDir = direction;
-                axis = dragDir === 'left' || dragDir === 'right' ? 'x' : 'y';
-                start = axis === 'x' ? e.clientX : e.clientY;
-                w = parseInt(style.getPropertyValue('width'));
-                h = parseInt(style.getPropertyValue('height'));
-                
-                //prevent transition while dragging
-                element.addClass('no-transition');
-                
-                document.addEventListener('mouseup', dragEnd, false);
-                document.addEventListener('mousemove', dragging, false);
-                
-                // Disable highlighting while dragging
-                if(e.stopPropagation) e.stopPropagation();
-                if(e.preventDefault) e.preventDefault();
-                e.cancelBubble = true;
-                e.returnValue = false;
-                
-                updateInfo(e);
-                scope.$emit('angular-resizable.resizeStart', info);
-                scope.$apply();
-                
-            };
-            
-            dir.forEach(function (direction) {
-                var grabber = document.createElement('div');
-                
-                // add class for styling purposes
-                grabber.setAttribute('class', 'rg-' + direction);
-                grabber.innerHTML = inner;
-                element[0].appendChild(grabber);
-                grabber.ondragstart = function() { return false; };
-                grabber.addEventListener('mousedown', function(e) {
-                    var disabled = (scope.rDisabled === 'true');
-                    if (!disabled && e.which === 1) {
-                        // left mouse click
-                        dragStart(e, direction);
-                    }
-                }, false);
-            });
-        }
-    };
-});
 
 app.filter('range',()=>{
     return (...arguments)=>{
@@ -557,10 +414,16 @@ function getPersonal(){
             icon:'home',
             val:'https://mücahiddayan.com'
         },
-        skills:{
-            javascript : 10,
-            HTML5 : 10  
-        }
+        skills:[
+            {
+                rate:10,
+                label:'javascript'
+            },
+            {
+                rate:10,
+                label:'HTML5'
+            },
+        ]
     };
     var personal = {};
     var temp = typeof localStorage.personal == 'undefined' ||
@@ -577,3 +440,29 @@ function updatePersonal(update){
     localStorage.personal = JSON.stringify(temp);
 }
 
+function getFromObject(obj,str,splitter='.'){
+	if(!new RegExp(splitter).test(str)){
+		return obj[str];
+	}
+	let temp = str.split(splitter);
+	var ret = obj[temp[0]];
+	if(typeof ret == 'undefined')return;
+	for(let i = 1 ; i< temp.length;i++){
+		ret = ret[temp[i]];
+	}
+	return ret;
+}
+
+function initToObject(obj,path,init,splitter='.'){    
+    if(!new RegExp(splitter).test(path)){
+		return obj[path] = init;
+    }
+    
+    var i;
+    path = path.split(splitter);
+    for (i = 0; i < path.length - 1; i++){
+        obj = obj[path[i]];
+    }
+    obj[path[i]] = init;
+    return obj;
+}
