@@ -1,5 +1,5 @@
 <h1 id="personal_name" ng-bind="personal.name" cv-editable data-type="name" class="cv-editable"></h1>
 <h2 id="personal_prof" ng-bind="personal.prof" cv-editable data-type="prof" class="cv-editable"></h2>
-<div class="editable-wrapper"><font-selector fonts="fonts" for="email" selected="personal.email.icon"></font-selector><span id="personal_email" ng-bind="personal.email.val" cv-editable data-type="email" class="cv-editable"></span></div>
-<div class="editable-wrapper"><font-selector fonts="fonts" for="phone" selected="personal.phone.icon"></font-selector><span id="personal_phone" ng-bind="personal.phone.val" cv-editable data-type="phone" class="cv-editable"></span></div>
-<div class="editable-wrapper"><font-selector fonts="fonts" for="homepage" selected="personal.homepage.icon"></font-selector><span id="personal_homepage" ng-bind="personal.homepage.val" cv-editable data-type="homepage" class="cv-editable"></span></div>
+<div class="editable-wrapper"><font-selector fonts="fonts" for="email" cb="save($event)" selected="personal.email.icon"></font-selector><span id="personal_email" ng-bind="personal.email.val" cv-editable data-type="email" class="cv-editable"></span></div>
+<div class="editable-wrapper"><font-selector fonts="fonts" for="phone" cb="save($event)" selected="personal.phone.icon"></font-selector><span id="personal_phone" ng-bind="personal.phone.val" cv-editable data-type="phone" class="cv-editable"></span></div>
+<div class="editable-wrapper"><font-selector fonts="fonts" for="homepage" cb="save($event)" selected="personal.homepage.icon"></font-selector><span id="personal_homepage" ng-bind="personal.homepage.val" cv-editable data-type="homepage" class="cv-editable"></span></div>

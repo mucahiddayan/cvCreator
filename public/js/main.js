@@ -43,6 +43,10 @@ app.controller('mainController',['$scope','$http',($scope,$http)=>{
     $scope.resizeCallback = ()=>{
         document.querySelector('#img-wrapper').style.height = document.querySelector('left').clientWidth+'px';        
     }
+
+    $scope.save = (msg)=>{
+        console.log(msg);
+    }
     
     
 }]);
@@ -86,13 +90,40 @@ app.directive('rating',()=>{
 
 app.directive('rate',()=>{
     let link = (scope,el,atts)=>{
+        scope.personal = getPersonal();
+        scope.skills = scope.personal.skills
+        let skills = {};
         
+        scope.add = ()=>{
+            var sk = prompt('Add skill:point');
+            if(sk && /:/.test(sk)){
+                skills[sk.split(':')[0]] = sk.split(':')[1];
+                scope.personal.skills = skills;
+                scope.skills = skills;
+                updatePersonal(scope.personal);
+            }
+        }        
+
+
+    }
+
+    let template = (el,attr)=>{
+        return `<span class="add-rating" ng-click="add()"><i class="fa fa-plus"></i></span>
+        <div class="rating" id="rate-circle" ng-repeat="(name,rate) in skills">
+        <label cv-editable data-type="skills.{{name}}" class="cv-editable">{{name}}</label>
+        <svg ng-repeat="i in []|range:rate"  id="radialrate" class="radialrate" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0" y="0">
+        <circle id="radialrate-fill" class="radialprogress-fill" ng-click="change()"></circle>
+        </svg>
+        <span class="add-rating" ng-click="add()"><i class="fa fa-plus"></i></span>
+        </div>`;
     }
     return{
         link:link,
         scope:{
             
-        }
+        },
+        template : template,
+        link:link
     }
 });
 
@@ -143,15 +174,17 @@ app.directive('fontSelector',['$filter',($filter)=>{
 
 app.directive('cvEditable',[(PERSONAL)=>{
     let personal = getPersonal();
+    let scp;
     
     let link=(scope,element,attrs)=>{
         let el = element[0];        
         el.addEventListener('dblclick',_=>{            
             createInput(el);
         });
+        scp = scope;
     }
     
-    let createInput = el=>{
+    let createInput = (el)=>{
         let editField = el.nextSibling;
         let textLength = el.innerText.length;
         var input;
@@ -178,16 +211,22 @@ app.directive('cvEditable',[(PERSONAL)=>{
         input.addEventListener('keydown',e=>{
             if(e.key == 'Enter'){
                 save(el,input);
+                scp.cb();
+            }
+            if(e.key == 'Escape'){
+                closeEditable(input,el);
             }
             if(e.key == 'Tab' && !e.shiftKey){
                 e.preventDefault();
                 save(el,input);
+                scp.cb();
                 goToNext(el,input);
                 
             }
             if(e.key == 'Tab' && e.shiftKey){
                 e.preventDefault();
                 save(el,input);
+                scp.cb();
                 goToPrev(el,input);
                 
             }
@@ -195,15 +234,15 @@ app.directive('cvEditable',[(PERSONAL)=>{
         });  
     }
     
-    let init = (el)=>{
-        
+    let closeEditable = (inp,el)=>{
+        inp.remove();
+        el.style.display = '';
     }
     
     let save = (el,input)=>{
         el.innerText = input.value;
         personal[el.dataset.type].val = el.innerText;
-        input.remove();
-        el.style.display = '';
+        closeEditable(input,el);        
         update();
     }
     
@@ -229,7 +268,10 @@ app.directive('cvEditable',[(PERSONAL)=>{
     
     return {
         restrict:'A',
-        link: link
+        link: link,
+        scope:{
+            cb:'&'
+        }
     };
 }]);
 
@@ -410,7 +452,7 @@ app.filter('range',()=>{
 HTMLElement.prototype.prev = function(sel){
     var pr = this.previousElementSibling;
     var el;
-    if(!pr)return;
+    if(!pr || !(pr instanceof HTMLElement))return;
 	if(pr.matches(sel)){
 		el= pr;
     }else{
@@ -422,10 +464,11 @@ HTMLElement.prototype.prev = function(sel){
 HTMLElement.prototype.next = function(sel){
     var pr = this.nextElementSibling;
     var el;
-    if(!pr)return;
-	if(pr.matches(sel)){
-		el= pr;
-    }else{
+    if(!pr || !(pr instanceof HTMLElement))return;
+    
+	if(pr.matches(sel)){        
+		el = pr;
+    }else{ 
         return pr.next(sel);
     }
     return el;
@@ -513,6 +556,10 @@ function getPersonal(){
         homepage: {
             icon:'home',
             val:'https://mücahiddayan.com'
+        },
+        skills:{
+            javascript : 10,
+            HTML5 : 10  
         }
     };
     var personal = {};
@@ -529,3 +576,4 @@ function updatePersonal(update){
     var temp = Object.assign(personal,update);
     localStorage.personal = JSON.stringify(temp);
 }
+

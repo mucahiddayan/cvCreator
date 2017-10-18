@@ -97,6 +97,27 @@ a4 {
     border: none;
     border-bottom: 1px solid #1acee6;
     outline: none; }
+  a4 #rate-circle {
+    text-align: right;
+    display: block;
+    position: relative; }
+    a4 #rate-circle label.ng-binding {
+      position: absolute;
+      top: 1px;
+      left: 2px; }
+    a4 #rate-circle #radialrate {
+      padding: 2px;
+      width: 15px;
+      height: 15px; }
+      a4 #rate-circle #radialrate #radialrate-fill {
+        /*  stroke-width: 5px;
+         stroke: #000;
+         stroke-dashoffset: 0px;
+         stroke-dasharray: 1,1; */
+        fill: green;
+        r: 9;
+        cx: 8;
+        cy: 8; }
 
 .font-selector-wrapper {
   width: 50px;

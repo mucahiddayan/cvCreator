@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const app = express();
-var http = require('http');
-var multer  = require('multer');
-var path = require('path');
+const http = require('http');
+const multer  = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 var storage = multer.diskStorage({
     destination: './public/uploads/',
@@ -20,7 +21,11 @@ app.get('/', (req, res)=> {
 
 app.use(express.static('public'));
 
-
+/* app.get('/uploads',(req,res)=>{
+    fs.readdir('./public/uploads',(err,files)=>{
+        console.log(files);
+    });
+}); */
 
 app.listen(3000, function () {
     console.log('Example app listening on port 3000!');
