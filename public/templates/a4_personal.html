@@ -1,5 +1,14 @@
-<h1 id="personal_name" ng-bind="personal.name" cv-editable data-type="name" class="cv-editable"></h1>
-<h2 id="personal_prof" ng-bind="personal.prof" cv-editable data-type="prof" class="cv-editable"></h2>
-<div class="editable-wrapper"><font-selector fonts="fonts" for="email" selected="personal.email.icon"></font-selector><span id="personal_email" ng-bind="personal.email.val" cv-editable data-type="email.val" class="cv-editable"></span></div>
-<div class="editable-wrapper"><font-selector fonts="fonts" for="phone" selected="personal.phone.icon"></font-selector><span id="personal_phone" ng-bind="personal.phone.val" cv-editable data-type="phone.val" class="cv-editable"></span></div>
-<div class="editable-wrapper"><font-selector fonts="fonts" for="homepage" selected="personal.homepage.icon"></font-selector><span id="personal_homepage" ng-bind="personal.homepage.val" cv-editable data-type="homepage.val" class="cv-editable"></span></div>
+<h1 id="personal_name" ng-bind="personal.name.val" cv-editable data-type="name.val" class="cv-editable" ng-style="{fontFamily:personal.name.font}"></h1>
+<h2 id="personal_prof" ng-bind="personal.prof.val" cv-editable data-type="prof.val" class="cv-editable" ng-style="{fontFamily:personal.prof.font}"></h2>
+<div class="editable-wrapper">
+    <icon-selector icons="icons" for="email" selected="personal.email.icon"></icon-selector>
+    <span id="personal_email" ng-bind="personal.email.val" cv-editable data-type="email.val" class="cv-editable" ng-style="{fontFamily:personal.email.font}"></span>
+</div>
+<div class="editable-wrapper">
+    <icon-selector icons="icons" for="phone" selected="personal.phone.icon"></icon-selector>
+    <span id="personal_phone" ng-bind="personal.phone.val" cv-editable data-type="phone.val" class="cv-editable" ng-style="{fontFamily:personal.phone.font}"></span>
+</div>
+<div class="editable-wrapper">
+    <icon-selector icons="icons" for="homepage" selected="personal.homepage.icon"></icon-selector>
+    <span id="personal_homepage" ng-bind="personal.homepage.val" cv-editable data-type="homepage.val" class="cv-editable" ng-style="{fontFamily:personal.homepage.font}"></span>
+</div>

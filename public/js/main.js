@@ -4,39 +4,59 @@
 
 var app = angular.module('cvCreator',[]);
 
-app.controller('controlls',['$scope',($scope)=>{
-    $scope.run = {
-        print : ()=>{
-            window.print();
-        },
-        selectFont: () =>{
-            console.log('open box');
-        }
-    };
-    
-    $scope.controlls = {
-        print : {
-            icon: 'print',
-            run : $scope.run.print
-        },
-
-        font : {
-            icon: 'font',
-            run : $scope.run.selectFont
-        }
-    }
-
-}]);
-
-app.directive('controlls',()=>{
+app.directive('controllsLeft',()=>{
     return {
-        templateUrl:'templates/controlls.html'
+        templateUrl:(el,atts)=>'templates/controlls-left.html',
+        scope:{
+            position:'@',
+            elements:'=',
+            runs:'='
+        },
+        link : (scope,el,atts)=>{
+            scope.run = {
+                print : ()=>{
+                    window.print();
+                },                
+            };
+            
+            scope.controlls = {
+                print : {
+                    icon: 'print',
+                    run : scope.run.print
+                },
+            }
+        }
     }
 });
 
-app.controller('mainController',['$scope','$http',($scope,$http)=>{
+app.directive('controllsTop',()=>{
+    return {
+        templateUrl:(el,atts)=>'templates/controlls-top.html',
+        scope:{
+            
+        },
+        link : (scope,el,atts)=>{
+            scope.run = {
+                selectFont: () =>{
+                    console.log('open box');
+                }
+            };
+            
+            scope.fonts = fonts;
+            
+            scope.controlls = {
+                font : {
+                    icon: 'font',
+                    run : scope.run.selectFont
+                },
+            }
+        }
+    }
+});
+
+app.controller('mainController',['$scope','$http','dataService',($scope,$http,dataService)=>{
     
-    $scope.fonts = fonts;
+    $scope.icons = icons;
     
     $scope.getPersonal = ()=>{
         return getPersonal();
@@ -67,7 +87,7 @@ app.controller('mainController',['$scope','$http',($scope,$http)=>{
             },err=>{
                 console.warn(err);
             });
-        }       
+        }
     };
     
     $scope.resizeCallback = ()=>{
@@ -77,8 +97,10 @@ app.controller('mainController',['$scope','$http',($scope,$http)=>{
     $scope.save = (msg)=>{
         console.log(msg);
     }
-    
-    
+
+    $scope.selected = {
+        font : dataService.selected.font,
+    };
 }]);
 
 
@@ -128,7 +150,7 @@ app.directive('rate',()=>{
             var sk = prompt('Add skill:point');
             if(sk && /:/.test(sk)){
                 var skill = stringToParam('label:rate:color',sk.split(':'));
-                    
+                
                 var index = scope.skills.findIndex(e=>e.label.toLowerCase() == skill.label.toLowerCase());
                 if(index > -1){
                     angular.extend(scope.skills[index],skill);
@@ -139,14 +161,14 @@ app.directive('rate',()=>{
                 scope.update();
             }
         }
-
+        
         scope.delete = (i)=>{
             var con = confirm('Willst du wirklich löschen?');
             if(!con)return;
             scope.skills.splice(i,1);
             scope.update();
         }
-
+        
         scope.rate = (el)=>{
             var pr = prompt('Rate');
             if(!pr)return;
@@ -158,7 +180,7 @@ app.directive('rate',()=>{
             angular.extend(scope.skills[el],opt);
             scope.update();       
         }
-
+        
         scope.update = ()=>{
             scope.personal.skills = scope.skills;
             updatePersonal(scope.personal);
@@ -168,11 +190,11 @@ app.directive('rate',()=>{
     let template = (el,attr)=>{
         return `<div class="add-rating-wrapper"><span class="add-rating" ng-click="add()"><i class="fa fa-plus not-in-print"></i></span></div>
         <div class="rate-circle-wrapper" id="rate-circle" ng-repeat="(ind,skill) in skills track by $index">
-        <label cv-editable data-type="skills.{{ind}}.label" class="cv-editable">{{skill.label}}</label>
+        <label cv-editable ng-style="{fontFamily:skill.font}" data-type="skills.{{ind}}.label" class="cv-editable">{{skill.label}}</label>
         <div class="circles-wrapper">
-        <svg ng-repeat="i in []|range:skill.rate" ng-click="rate(ind)"  id="radialrate" class="radialrate" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0" y="0">
-        <circle id="radialrate-fill" class="radialprogress-fill" fill="{{skill.color?skill.color:color}}"></circle>
-        </svg>        
+        <div ng-repeat="i in []|range:skill.rate" ng-click="rate(ind)" title="{{i}}" id="radialrate" class="radialrate" style="background:{{skill.color?skill.color:color}}" >
+        
+        </div>        
         </div><span class="delete-skill" ng-click="delete(ind)"><i class="fa fa-minus not-in-print"></i></span>
         </div>`;
     }
@@ -186,13 +208,54 @@ app.directive('rate',()=>{
     }
 });
 
+app.directive('fontSelector',['$filter','dataService',($filter,dataService)=>{
+    let link = (scope,el,atts)=>{
+        scope.fonts = fonts;
+        scope.selectedFont = dataService.selected.font;     
+        
+        scope.$watch('selectedFont',(n,o)=>{
+            dataService.selected.font = scope.selectedFont;
+            console.log(dataService.selected.font);
+            changeFont(dataService.selected.font);
+        });
+        
+    }
 
-app.directive('fontSelector',['$filter',($filter)=>{
+    let changeFont = (font)=>{
+        var fields = document.querySelectorAll('.edit-field');
+        [].map.call(fields,field=>{
+            field.previousElementSibling.style.fontFamily = font;
+            field.style.fontFamily = font;
+            console.log(field.previousElementSibling.dataset.type);
+            var type = field.previousElementSibling.dataset.type.split(/\.(?=[^.]*$)/)[0]+'.font';
+            console.log(type);
+            var personal = getPersonal();
+            initToObject(personal,type,font);
+            updatePersonal(personal);
+
+        });
+    }
+    
+    let template = (el,atts)=>{
+        return `<select ng-model="selectedFont" ng-style="{fontFamily:selectedFont}">
+        <option ng-repeat="font in fonts |filter:fontSearch track by $index" ng-style="{fontFamily:font}">{{font}}</option>            
+        </select>`;
+    }
+    
+    return{
+        restrict:'E',        
+        link:link,
+        template:template
+    }
+}]);
+
+app.directive('iconSelector',['$filter',($filter)=>{
     let link = (scope,el,attrs)=>{        
         scope.opened = false;
         
         scope.openBox = ()=>{
-            scope.opened = !scope.opened;            
+            scope.opened = !scope.opened;
+            
         }
         scope.select = (select,fr)=>{
             scope.selected = select;
@@ -209,18 +272,18 @@ app.directive('fontSelector',['$filter',($filter)=>{
     }
     
     let template = (el,attr)=>{
-        return `<div class="font-selector-wrapper">        
+        return `<div class="icon-selector-wrapper">        
         <div class="selected" ng-click="openBox()"><i class="fa fa-{{selected}}"></i></div>
-        <div class="font-selector" ng-show="opened" ng-class="{'opened':opened}">
+        <div class="icon-selector" ng-show="opened" ng-class="{'opened':opened}">
         <input type="text" class="search" ng-model="search">            
-        <div class="font-item" ng-repeat="f in fonts | filter:search track by $index" ng-click="select(f,'${attr.for}')" title="{{f}}"><i  class="fa fa-{{f}}"></i></div>
+        <div class="font-item" ng-repeat="f in icons | filter:search track by $index" ng-click="select(f,'${attr.for}')" title="{{f}}"><i  class="fa fa-{{f}}"></i></div>
         </div>
         </div>`
     }
     return{
         restrict:'E',
         scope: {
-            fonts: '=',
+            icons: '=',
             selected: '=',
             for:'='      
         },
@@ -229,26 +292,34 @@ app.directive('fontSelector',['$filter',($filter)=>{
     }
 }]);
 
-app.directive('cvEditable',[(PERSONAL)=>{
+app.factory('dataService',[()=>{
+    return {
+        selected:{
+            font : ''
+        }
+    };
+}]);
+
+app.directive('cvEditable',['dataService',(dataService)=>{
     let personal = getPersonal();
     let input_;
-    let cb_;
+    
     
     let link=(scope,element,attrs)=>{
         let el = element[0];        
         el.addEventListener('dblclick',_=>{            
+            closeEditable();
             createInput(el);
-        });
-        cb_ = scope.cb;    
+        });            
     }
     
     let createInput = (el)=>{
         let editField = el.nextSibling;
         let textLength = el.innerText.length;
-        
+        dataService.selected.font = el.style.fontFamily;    
         if(editField && /\edit\-field/.test(editField.className)){
             editField.style.display = '';
-            input = editField;            
+            input_ = editField;            
         }else{
             var type = 'input'
             if(textLength > 60){
@@ -260,6 +331,7 @@ app.directive('cvEditable',[(PERSONAL)=>{
             input_.dataset.for = el.dataset.type;
             input_.value = el.innerText;
             input_.style.display = '';
+           
             el.insertAdjacentElement('afterend',input_);
         }
         setTimeout(function() {
@@ -292,6 +364,7 @@ app.directive('cvEditable',[(PERSONAL)=>{
     }
     
     let closeEditable = (el)=>{
+        if(!input_ || !el)return;
         input_.remove();
         el.style.display = '';
     }
@@ -330,7 +403,6 @@ app.directive('cvEditable',[(PERSONAL)=>{
         restrict:'A',
         link: link,
         scope:{
-            cb:'&'
         }
     };
 }]);
@@ -454,28 +526,39 @@ function getPrevEditable(el){
 
 function getPersonal(){
     var defaults = {
-        name : 'Mücahid Dayan',
-        prof : 'webdeveloper',
+        name : {
+            val : 'Mücahid Dayan',
+            font: 'Arial'
+        },
+        prof : {
+            val:'webdeveloper',
+            font:'Calibri'
+        },
         email: {
             icon:'envelope',
             val:'muecahid@dayan.one',
+            font:'Avant',
         },
         phone: {
             icon: 'phone',
             val:'32',
+            font:'Century',
         },
         homepage: {
             icon:'home',
-            val:'https://mücahiddayan.com'
+            val:'https://mücahiddayan.com',
+            font:'Arial',
         },
         skills:[
             {
                 rate:10,
-                label:'javascript'
+                label:'javascript',
+                font:'Arial',
             },
             {
                 rate:10,
-                label:'HTML5'
+                label:'HTML5',
+                font:'Arial',
             },
         ]
     };

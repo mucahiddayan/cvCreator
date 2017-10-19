@@ -9,35 +9,58 @@ body{
     height: auto;
     overflow: auto;
     
-    controlls {
+    controlls-top {
+        width: 100%;
+        height: 30px;
+        left: 60px;
+        top: 0;
+        display: inline-flex;
+    }
+    
+    controlls-left{
         width: 50px;
         height: 100%;
-        padding: 5px;
         left: 0;
-        top: 0px;
+        top: 0;
+    }
+    
+    .controlls {        
+        padding: 5px;
+        overflow: hidden;
         position: fixed;
         box-shadow: 1px 0px 5px 0px #333;
-        background-color: rgba(0,0,0,.4);
-
-        .controll {
-            font: 30px/40px FontAwesome;
-            height: 40px;
+        background-color: #333;
+        z-index: 99;
+       
+        
+        .controll{
             text-align: center;
             cursor: pointer;
             margin: 5px;
             box-shadow: 0px 0px 1px 1px #000;
-            color:#333;
-
+            color:#111;
+            
             &:active {            
                 box-shadow: 0px 0px 1px 1px #000 inset;
             }
-
+            
             &:hover {            
                 color: #000;
             }
+
+            select {
+                background: #333;
+                outline: none;
+                border: none;
+                color: #fff;
+            }
+
+            i{
+                font: 30px/40px FontAwesome;           
+            }
         }
 
-       
+        
     }
     
     
@@ -193,45 +216,36 @@ body{
                 left: 2px;
             }
             #radialrate {
-                padding: 2px;
                 width: 15px;
                 height: 15px;
-                
-                #radialrate-fill {
-                    /*  stroke-width: 5px;
-                    stroke: #000;
-                    stroke-dashoffset: 0px;
-                    stroke-dasharray: 1,1; */
-                    r:9;
-                    cx:8;
-                    cy:8;
-                }
+                margin: 1px;
+                display: inline-flex;
             }
         }
         
     }
     
-    .font-selector-wrapper {
+    .icon-selector-wrapper {
         width: 50px;
         min-height: 30px;
         height:30px;
         overflow: hidden;
     }
     
-    .font-selector {
+    .icon-selector {
         width: 90%;
         height: 90%;
         overflow: hidden;
         margin: auto;    
     }
     
-    .font-selector .font-item {
+    .icon-selector .font-item {
         height: 18px;
         padding:6px;
         display: inline-block;
     }
     
-    .font-selector.opened {
+    .icon-selector.opened {
         width: 200px;
         height: 200px;
         position: absolute;

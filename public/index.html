@@ -8,12 +8,14 @@
     <link href="css/main.css" rel="stylesheet"/>
     <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="js/angular.min.js"></script>    
+    <script src="js/icons.js"></script>
     <script src="js/fonts.js"></script>
     <script src="js/main.js"></script>
     <script src="js/ang-resizable.js"></script>
 </head>
-<body ng-app="cvCreator" >
-    <controlls ng-controller="controlls" class="not-in-print"></controlls>
-    <a4 ng-controller="mainController as mctrl"></a4>    
+<body ng-app="cvCreator" ng-controller="mainController as mctrl" >
+    <controlls-left class="not-in-print controlls"></controlls-left>
+    <controlls-top class="not-in-print controlls"></controlls-top>
+    <a4></a4>    
 </body>
 </html>
