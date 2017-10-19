@@ -91,36 +91,59 @@ app.directive('rating',()=>{
 app.directive('rate',()=>{
     let link = (scope,el,atts)=>{
         scope.personal = getPersonal();
-        scope.skills = scope.personal.skills        
+        scope.skills = scope.personal.skills;
+        scope.color = 'green';     
         
         scope.add = ()=>{
             var sk = prompt('Add skill:point');
             if(sk && /:/.test(sk)){
                 var skill = {};
-                skill[sk.split(':')[0]] = sk.split(':')[1];                
-                scope.skills.push(skill);
-                scope.personal.skills = scope.skills;
-                updatePersonal(scope.personal);
+                var spl = sk.split(':');
+                skill = {label:spl[0] , rate: spl[1]};
+                if(spl.length>2){
+                    skill['color'] = spl[2];
+                }              
+                var index = scope.skills.findIndex(e=>angular.equals(e,skill));
+                if(index > -1){
+                    scope.skills[index] = skill;
+                }else{
+                    scope.skills.push(skill);    
+                }                
+                scope.update();
             }
+        }
+
+        scope.delete = (i)=>{
+            var con = confirm('Bist du sicher?');
+            if(!con)return;
+            scope.skills.splice(i,1);
+            scope.update();
         }
 
         scope.rate = (el)=>{
             var pr = prompt('Rate');
             if(isNaN(pr)){alert('Bitte Zahl eingeben');scope.rate(el);return;}
+            if(parseInt(pr)>10 ||parseInt(pr)<1){alert('0< ZAHL < 11');scope.rate(el);return;}
             console.log(scope.skills);
-            // scope.skills[el].rate = parseInt(pr);            
+            scope.skills[el].rate = parseInt(pr);
+            scope.update();       
+        }
+
+        scope.update = ()=>{
+            scope.personal.skills = scope.skills;
+            updatePersonal(scope.personal);
         }
     }
     
     let template = (el,attr)=>{
         return `<div class="add-rating-wrapper"><span class="add-rating" ng-click="add()"><i class="fa fa-plus"></i></span></div>
-        <div class="rate-circle-wrapper" id="rate-circle" ng-repeat="(i,skill) in skills track by $index">
-        <label cv-editable data-type="skills.{{i}}.label" class="cv-editable">{{skill.label}}</label>
+        <div class="rate-circle-wrapper" id="rate-circle" ng-repeat="(ind,skill) in skills track by $index">
+        <label cv-editable data-type="skills.{{ind}}.label" class="cv-editable">{{skill.label}}</label>
         <div class="circles-wrapper">
-        <svg ng-repeat="i in []|range:skill.rate" ng-click="rate(skill.label)" id="radialrate" class="radialrate" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0" y="0">
-        <circle id="radialrate-fill" class="radialprogress-fill"></circle>
+        <svg ng-repeat="i in []|range:skill.rate" ng-click="rate(ind)"  id="radialrate" class="radialrate" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0" y="0">
+        <circle id="radialrate-fill" class="radialprogress-fill" fill="{{skill.color?skill.color:color}}"></circle>
         </svg>        
-        </div>
+        </div><span class="delete-skill" ng-click="delete(ind)"><i class="fa fa-minus"></i></span>
         </div>`;
     }
     return{

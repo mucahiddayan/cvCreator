@@ -135,16 +135,27 @@ a4{
         text-align: center;
         padding: 5px;
     }
-
+    
     #rate-circle {
         display: block;
         position: relative;
-
+        
         .circles-wrapper {
             width: 80%;
             margin-left: 32%;
         }
-
+        
+        .delete-skill {position: absolute;
+            z-index: 999;
+            right: -15px;
+            top: 2px;
+            transition: right .5s;
+            cursor: pointer;
+        }
+        
+        &:hover .delete-skill{ 
+            right:8px;
+        }
         label.ng-binding {
             position: absolute;
             top: 1px;
@@ -156,11 +167,10 @@ a4{
             height: 15px;
             
             #radialrate-fill {
-               /*  stroke-width: 5px;
+                /*  stroke-width: 5px;
                 stroke: #000;
                 stroke-dashoffset: 0px;
                 stroke-dasharray: 1,1; */
-                fill: green;
                 r:9;
                 cx:8;
                 cy:8;
