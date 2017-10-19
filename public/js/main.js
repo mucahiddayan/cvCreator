@@ -103,9 +103,10 @@ app.directive('rate',()=>{
                 if(spl.length>2){
                     skill['color'] = spl[2];
                 }              
-                var index = scope.skills.findIndex(e=>angular.equals(e,skill));
+                var index = scope.skills.findIndex(e=>e.label.toLowerCase() == skill.label.toLowerCase());
                 if(index > -1){
-                    scope.skills[index] = skill;
+                    angular.extend(scope.skills[index],skill);
+                    // scope.skills[index] = skill;
                 }else{
                     scope.skills.push(skill);    
                 }                
@@ -267,6 +268,7 @@ app.directive('cvEditable',[(PERSONAL)=>{
     }
     
     let save = (el)=>{
+        personal = getPersonal();
         el.innerText = input_.value;
         console.log(personal[el.dataset.type]);
         initToObject(personal,el.dataset.type,el.innerText)
@@ -486,6 +488,10 @@ function initToObject(obj,path,init,splitter='.'){
     for (i = 0; i < path.length - 1; i++){
         obj = obj[path[i]];
     }
+    if(!obj){
+        console.warn('object is empty');
+        return
+    };
     obj[path[i]] = init;
     return obj;
 }
