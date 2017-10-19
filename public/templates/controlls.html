@@ -1,0 +1,5 @@
+<div id="controller-wrapper">
+    <div ng-repeat="controll in controlls track by $index" class="controll">
+        <i class="fa fa-{{controll.icon}}" ng-click="controll.run()"></i>
+    </div>
+</div>

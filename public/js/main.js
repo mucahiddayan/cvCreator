@@ -4,6 +4,36 @@
 
 var app = angular.module('cvCreator',[]);
 
+app.controller('controlls',['$scope',($scope)=>{
+    $scope.run = {
+        print : ()=>{
+            window.print();
+        },
+        selectFont: () =>{
+            console.log('open box');
+        }
+    };
+    
+    $scope.controlls = {
+        print : {
+            icon: 'print',
+            run : $scope.run.print
+        },
+
+        font : {
+            icon: 'font',
+            run : $scope.run.selectFont
+        }
+    }
+
+}]);
+
+app.directive('controlls',()=>{
+    return {
+        templateUrl:'templates/controlls.html'
+    }
+});
+
 app.controller('mainController',['$scope','$http',($scope,$http)=>{
     
     $scope.fonts = fonts;
@@ -111,7 +141,7 @@ app.directive('rate',()=>{
         }
 
         scope.delete = (i)=>{
-            var con = confirm('Bist du sicher?');
+            var con = confirm('Willst du wirklich löschen?');
             if(!con)return;
             scope.skills.splice(i,1);
             scope.update();
@@ -119,9 +149,11 @@ app.directive('rate',()=>{
 
         scope.rate = (el)=>{
             var pr = prompt('Rate');
+            if(!pr)return;
             var opt = stringToParam('rate:color',pr.split(':'));
             if(isNaN(opt.rate)){alert('Bitte Zahl eingeben');scope.rate(el);return;}
-            if(parseInt(opt.rate)>10 ||parseInt(opt.rate)<1){alert('0< ZAHL < 11');scope.rate(el);return;}
+            if(parseInt(opt.rate)>10){alert('0< ZAHL < 11');scope.rate(el);return;}
+            if(parseInt(opt.rate)<1)scope.delete(el);
             console.log(scope.skills);
             angular.extend(scope.skills[el],opt);
             scope.update();       
@@ -134,14 +166,14 @@ app.directive('rate',()=>{
     }
     
     let template = (el,attr)=>{
-        return `<div class="add-rating-wrapper"><span class="add-rating" ng-click="add()"><i class="fa fa-plus"></i></span></div>
+        return `<div class="add-rating-wrapper"><span class="add-rating" ng-click="add()"><i class="fa fa-plus not-in-print"></i></span></div>
         <div class="rate-circle-wrapper" id="rate-circle" ng-repeat="(ind,skill) in skills track by $index">
         <label cv-editable data-type="skills.{{ind}}.label" class="cv-editable">{{skill.label}}</label>
         <div class="circles-wrapper">
         <svg ng-repeat="i in []|range:skill.rate" ng-click="rate(ind)"  id="radialrate" class="radialrate" version="1.1" xmlns="http://www.w3.org/2000/svg" x="0" y="0">
         <circle id="radialrate-fill" class="radialprogress-fill" fill="{{skill.color?skill.color:color}}"></circle>
         </svg>        
-        </div><span class="delete-skill" ng-click="delete(ind)"><i class="fa fa-minus"></i></span>
+        </div><span class="delete-skill" ng-click="delete(ind)"><i class="fa fa-minus not-in-print"></i></span>
         </div>`;
     }
     return{
@@ -239,7 +271,7 @@ app.directive('cvEditable',[(PERSONAL)=>{
                 save(el);                
             }
             if(e.key == 'Escape'){
-                closeEditable(input,el);
+                closeEditable(el);
             }
             if(e.key == 'Tab' && !e.shiftKey){
                 e.preventDefault();
@@ -494,7 +526,8 @@ function initToObject(obj,path,init,splitter='.'){
 }
 
 function stringToParam(str,values,splitter=':'){
-    var str = str.split(splitter);
+    if(str == '')return;
+    str = str.split(splitter);
     var obj = {};
     
     for(let i = 0; i< str.length; i ++){
