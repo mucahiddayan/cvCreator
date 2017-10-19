@@ -97,12 +97,8 @@ app.directive('rate',()=>{
         scope.add = ()=>{
             var sk = prompt('Add skill:point');
             if(sk && /:/.test(sk)){
-                var skill = {};
-                var spl = sk.split(':');
-                skill = {label:spl[0] , rate: spl[1]};
-                if(spl.length>2){
-                    skill['color'] = spl[2];
-                }              
+                var skill = stringToParam('label:rate:color',sk.split(':'));
+                    
                 var index = scope.skills.findIndex(e=>e.label.toLowerCase() == skill.label.toLowerCase());
                 if(index > -1){
                     angular.extend(scope.skills[index],skill);
@@ -123,10 +119,11 @@ app.directive('rate',()=>{
 
         scope.rate = (el)=>{
             var pr = prompt('Rate');
-            if(isNaN(pr)){alert('Bitte Zahl eingeben');scope.rate(el);return;}
-            if(parseInt(pr)>10 ||parseInt(pr)<1){alert('0< ZAHL < 11');scope.rate(el);return;}
+            var opt = stringToParam('rate:color',pr.split(':'));
+            if(isNaN(opt.rate)){alert('Bitte Zahl eingeben');scope.rate(el);return;}
+            if(parseInt(opt.rate)>10 ||parseInt(opt.rate)<1){alert('0< ZAHL < 11');scope.rate(el);return;}
             console.log(scope.skills);
-            scope.skills[el].rate = parseInt(pr);
+            angular.extend(scope.skills[el],opt);
             scope.update();       
         }
 
@@ -493,5 +490,17 @@ function initToObject(obj,path,init,splitter='.'){
         return
     };
     obj[path[i]] = init;
+    return obj;
+}
+
+function stringToParam(str,values,splitter=':'){
+    var str = str.split(splitter);
+    var obj = {};
+    
+    for(let i = 0; i< str.length; i ++){
+        if(values[i]){
+            obj[str[i]] = values[i]
+        }
+    }
     return obj;
 }
