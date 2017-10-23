@@ -38,6 +38,49 @@ body {
         color: #fff; }
       body .controlls .controll i {
         font: 30px/40px FontAwesome; }
+  body .cv-edit-field {
+    outline: none;
+    border: none; }
+    body .cv-edit-field::after {
+      border-bottom: 1px solid #acacac;
+      width: 0px;
+      transition: all .5s; }
+    body .cv-edit-field.editing::after {
+      border-bottom: 1px solid #acacac;
+      width: 100%; }
+  body .context-menu-wrapper {
+    position: absolute;
+    width: auto;
+    background: #333;
+    color: #fff;
+    padding: 5px;
+    z-index: 99;
+    box-shadow: 0px 0px 2px 0px #000; }
+    body .context-menu-wrapper ul.menu, body .context-menu-wrapper .sub-menu {
+      margin: 0px;
+      padding: 0px;
+      width: 130px; }
+    body .context-menu-wrapper li.menu-item {
+      margin: 0px;
+      list-style: none;
+      box-shadow: 0px 1px 0px 0px #444;
+      padding: 3px;
+      position: relative;
+      cursor: pointer; }
+    body .context-menu-wrapper li.menu-item.ng-binding.ng-scope.selected {
+      background: #ececec;
+      color: #333; }
+    body .context-menu-wrapper .sub-menu {
+      right: -130px;
+      position: absolute;
+      background: #333;
+      display: none;
+      top: -5px;
+      box-shadow: 0px 1px 0px 0px #444;
+      max-height: 500px;
+      overflow-y: auto; }
+    body .context-menu-wrapper .menu-item:hover .sub-menu {
+      display: block; }
   body a4 {
     width: 210mm;
     height: 297mm;
@@ -123,7 +166,10 @@ body {
       body a4 personal .editable-wrapper {
         display: inline-flex;
         width: 100%; }
-    body a4 .edit-field {
+      body a4 personal #personal_name, body a4 personal #personal_prof {
+        width: 100%; }
+    body a4 .skill {
+      width: 80%;
       width: 80%;
       display: block;
       margin: 5px auto;
