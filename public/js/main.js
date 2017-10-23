@@ -332,14 +332,15 @@ app.directive('cvEditable',['dataService','$document','$compile','$rootScope',(d
                     <ul class="menu">
                         <li class="menu-item">
                             Font Size
-                            <ul class="sub-menu">
+                            <ul class="sub-menu">                            
                             <li class="menu-item" ng-click="selectFontSize(i+'px')" ng-repeat="i in [] |range:8:50:2 track by $index" ng-class="{selected:i == selectedSize.replace('px','')}">{{i}}px</li>
                             </ul>
                         </li>
                         <li class="menu-item">
                         Font Family
                         <ul class="sub-menu">
-                        <li class="menu-item" ng-click="selectFontFamily(i)" ng-repeat="i in fonts track by $index" ng-class="{selected:i == selectedFamily}">{{i}}</li>
+                        <input type="text" ng-model="searchFamily" />
+                        <li class="menu-item" ng-click="selectFontFamily(i)" ng-repeat="i in fonts |filter:searchFamily track by $index" ng-class="{selected:i == selectedFamily}">{{i}}</li>
                         </ul>
                     </li>
                     </ul>
