@@ -63,6 +63,66 @@ body{
         
     }
     
+    .cv-edit-field {
+        outline: none;
+        border: none;        
+        
+        &::after{
+            border-bottom:1px solid #acacac;
+            width:0px;
+            transition:all .5s;
+        }
+        &.editing::after{
+            border-bottom:1px solid #acacac;
+            width:100%;
+        }
+    }
+
+    .context-menu-wrapper {
+        position: absolute;
+        width: auto;
+        background: #333;
+        color: #fff;
+        padding: 5px;
+        z-index: 99;
+        box-shadow: 0px 0px 2px 0px #000;
+        ul.menu,.sub-menu {
+            margin: 0px;
+            padding: 0px;
+            width:130px;
+        }
+        
+        li.menu-item {
+            margin: 0px;
+            list-style: none;
+            box-shadow: 0px 1px 0px 0px #444;
+            padding: 3px;
+            position:relative;
+            cursor: pointer;
+        }
+
+        li.menu-item.ng-binding.ng-scope.selected {
+            background: #ececec;
+            color: #333;
+        }
+
+        .sub-menu {
+            right: -130px;
+            position: absolute;
+            background: #333;
+            display:none;
+            top:-5px;
+            box-shadow: 0px 1px 0px 0px #444;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .menu-item:hover .sub-menu{
+            display:block;
+        }
+
+    }
+
     
     a4{
         width: 210mm;
@@ -173,9 +233,16 @@ body{
                 display: inline-flex;
                 width: 100%;
             }
+
+            #personal_name,#personal_prof{
+                width:100%;
+            }
+
+            
         }
         
-        .edit-field {
+        .skill {
+            width: 80%;
             width: 80%;
             display: block;
             margin: 5px auto;

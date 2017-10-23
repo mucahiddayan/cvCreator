@@ -29,31 +29,6 @@ app.directive('controllsLeft',()=>{
     }
 });
 
-app.directive('controllsTop',()=>{
-    return {
-        templateUrl:(el,atts)=>'templates/controlls-top.html',
-        scope:{
-            
-        },
-        link : (scope,el,atts)=>{
-            scope.run = {
-                selectFont: () =>{
-                    console.log('open box');
-                }
-            };
-            
-            scope.fonts = fonts;
-            
-            scope.controlls = {
-                font : {
-                    icon: 'font',
-                    run : scope.run.selectFont
-                },
-            }
-        }
-    }
-});
-
 app.controller('mainController',['$scope','$http','dataService',($scope,$http,dataService)=>{
     
     $scope.icons = icons;
@@ -97,7 +72,7 @@ app.controller('mainController',['$scope','$http','dataService',($scope,$http,da
     $scope.save = (msg)=>{
         console.log(msg);
     }
-
+    
     $scope.selected = {
         font : dataService.selected.font,
     };
@@ -190,7 +165,17 @@ app.directive('rate',()=>{
     let template = (el,attr)=>{
         return `<div class="add-rating-wrapper"><span class="add-rating" ng-click="add()"><i class="fa fa-plus not-in-print"></i></span></div>
         <div class="rate-circle-wrapper" id="rate-circle" ng-repeat="(ind,skill) in skills track by $index">
-        <label cv-editable ng-style="{fontFamily:skill.font}" data-type="skills.{{ind}}.label" class="cv-editable">{{skill.label}}</label>
+        <span 
+        ng-focus="startEditing($event)"
+        ng-blur="stopEditing($event)"
+        ng-click="startEditing($event)"
+        class="skill"                   
+        cv-font="skill.font"
+        cv-type="skills.{{ind}}.label"
+        cv-bind="skill.label"
+        cv-style="skill.style"
+        cv-editable
+        ></span>
         <div class="circles-wrapper">
         <div ng-repeat="i in []|range:skill.rate" ng-click="rate(ind)" title="{{i}}" id="radialrate" class="radialrate" style="background:{{skill.color?skill.color:color}}" >
         
@@ -204,7 +189,7 @@ app.directive('rate',()=>{
             
         },
         template : template,
-        link:link
+        link:link,
     }
 });
 
@@ -220,20 +205,18 @@ app.directive('fontSelector',['$filter','dataService',($filter,dataService)=>{
         });
         
     }
-
+    
     let changeFont = (font)=>{
-        var fields = document.querySelectorAll('.edit-field');
-        [].map.call(fields,field=>{
-            field.previousElementSibling.style.fontFamily = font;
-            field.style.fontFamily = font;
-            console.log(field.previousElementSibling.dataset.type);
-            var type = field.previousElementSibling.dataset.type.split(/\.(?=[^.]*$)/)[0]+'.font';
-            console.log(type);
-            var personal = getPersonal();
-            initToObject(personal,type,font);
-            updatePersonal(personal);
-
-        });
+        var field = document.querySelector('.cv-editable.cv-edit-field.editing');
+        if(!field)return;
+        field.style.fontFamily = font;
+        var type = field.dataset.type;
+        console.log(type); 
+        var personal = getPersonal();
+        initToObject(personal,type,font);
+        updatePersonal(personal);
+        
+        
     }
     
     let template = (el,atts)=>{
@@ -300,82 +283,98 @@ app.factory('dataService',[()=>{
     };
 }]);
 
-app.directive('cvEditable',['dataService',(dataService)=>{
+// ############################## EDITABLE ####################################
+app.directive('cvEditable',['dataService','$document','$compile','$rootScope',(dataService,$document,$compile,$rootScope)=>{
     let personal = getPersonal();
     let input_;
     
     
     let link=(scope,element,attrs)=>{
-        let el = element[0];        
-        el.addEventListener('dblclick',_=>{            
-            closeEditable();
-            createInput(el);
-        });            
-    }
-    
-    let createInput = (el)=>{
-        let editField = el.nextSibling;
-        let textLength = el.innerText.length;
-        dataService.selected.font = el.style.fontFamily;    
-        if(editField && /\edit\-field/.test(editField.className)){
-            editField.style.display = '';
-            input_ = editField;            
-        }else{
-            var type = 'input'
-            if(textLength > 60){
-                type = 'textarea';
-            }
-            input_ = document.createElement(type);
-            input_.type = 'text';
-            input_.className = 'edit-field';
-            input_.dataset.for = el.dataset.type;
-            input_.value = el.innerText;
-            input_.style.display = '';
-           
-            el.insertAdjacentElement('afterend',input_);
+        console.log(scope.cvStyle);
+        scope.fonts = fonts;
+        scope.selectedSize   = scope.cvStyle.fontSize;
+        scope.selectedFamily = scope.cvStyle.fontFamily;
+        scope.startEditing = (el)=>{
+            scope.editing = true;
+            
         }
-        setTimeout(function() {
-            input_.focus();
-        }, 500);
-        el.style.display = 'none';
-        input_.addEventListener('keydown',e=>{
-            if(e.key == 'Enter'){
-                save(el);                
+        
+        scope.stopEditing = (el)=>{
+            scope.editing = false;
+            console.log(el.target.value);
+            save(el.target.value,scope.cvType);     
+        }
+
+        scope.selectFontFamily = (f)=>{
+            console.log(f);
+            var type= scope.cvType.split(/([^\.]*)$/)[0]+'style.fontFamily';
+            
+            scope.cvStyle.fontFamily = f;
+            scope.selectedFamily = f;
+            save(f,type);
+            // $rootScope.$broadcast('contextmenu/fontFamily');
+        }
+
+        scope.selectFontSize = (f)=>{
+            console.log(f,scope.cvType);
+            scope.cvStyle.fontSize = f;
+            scope.selectedSize = f;
+            var type= scope.cvType.split(/([^\.]*)$/)[0]+'style.fontSize';
+            save(f,type);
+            // $rootScope.$broadcast('contextmenu/fontSize');
+        }
+        
+        scope.openContextMenu = (event,style)=>{
+            console.log(event,style);
+            let menu = `
+                <div class="context-menu-wrapper">
+                    <div id="context-menu">
+                    <ul class="menu">
+                        <li class="menu-item">
+                            Font Size
+                            <ul class="sub-menu">
+                            <li class="menu-item" ng-click="selectFontSize(i+'px')" ng-repeat="i in [] |range:8:50:2 track by $index" ng-class="{selected:i == selectedSize.replace('px','')}">{{i}}px</li>
+                            </ul>
+                        </li>
+                        <li class="menu-item">
+                        Font Family
+                        <ul class="sub-menu">
+                        <li class="menu-item" ng-click="selectFontFamily(i)" ng-repeat="i in fonts track by $index" ng-class="{selected:i == selectedFamily}">{{i}}</li>
+                        </ul>
+                    </li>
+                    </ul>
+                    </div>
+                </div>
+            `;
+
+            if(i= document.querySelector('.context-menu-wrapper')){
+               i.remove();
+            }else{
+                angular.element(event.target).after($compile(menu)(scope));
             }
-            if(e.key == 'Escape'){
-                closeEditable(el);
-            }
-            if(e.key == 'Tab' && !e.shiftKey){
-                e.preventDefault();
-                save(el);
-                
-                goToNext(el);
-                
-            }
-            if(e.key == 'Tab' && e.shiftKey){
-                e.preventDefault();
-                save(el);
-                
-                goToPrev(el);
-                
-            }
-            // console.log(e.key);            
-        });  
+            
+        }
     }
     
-    let closeEditable = (el)=>{
-        if(!input_ || !el)return;
-        input_.remove();
-        el.style.display = '';
+    let template = (el,atts)=>{       
+        return `<input 
+        ng-focus="startEditing($event)"
+        ng-blur="stopEditing($event)"
+        ng-click="startEditing($event)"
+        ng-class={'editing':editing}
+        class="cv-edit-field"
+        type="text"
+        value="{{cvBind}}"
+        ng-style="cvStyle"
+        cv-contextMenu="openContextMenu($event,cvStyle)"
+        />`;
     }
     
-    let save = (el)=>{
-        personal = getPersonal();
-        el.innerText = input_.value;
-        console.log(personal[el.dataset.type]);
-        initToObject(personal,el.dataset.type,el.innerText)
-        // personal[el.dataset.type].val = el.innerText;
-        closeEditable(el);        
+    let save = (value,type)=>{
+        personal = getPersonal();                
+        console.log(value,type);
+        initToObject(personal,type,value);
+        // personal[el.dataset.type].val = el.innerText;          
         update();
     }
     
@@ -400,13 +399,32 @@ app.directive('cvEditable',['dataService',(dataService)=>{
     }
     
     return {
-        restrict:'A',
+        restrict:'AE',
         link: link,
+        replace:true,
+        template:template,
         scope:{
+            cvBind:'=',
+            cvStyle:'=',
+            cvType:'@'
         }
     };
 }]);
 
+// ############################## CV CONTEXT MENU
+app.directive('cvContextmenu',($parse)=>
+(scope,element,attrs)=>{
+    let fn = $parse(attrs.cvContextmenu);
+    element.bind('contextmenu',()=>{
+        scope.$apply(()=> {
+            event.preventDefault();
+            fn(scope, {$event:event});
+        });
+    });
+}
+);
+
+// ############################## FILTER RANGE ########################################
 app.filter('range',()=>{
     return (...arguments)=>{
         var input = arguments[0];
@@ -528,37 +546,55 @@ function getPersonal(){
     var defaults = {
         name : {
             val : 'Mücahid Dayan',
-            font: 'Arial'
+            style:{
+                font: 'Arial',
+                fontSize:'25px',
+                textAlign:'center'
+            }
         },
         prof : {
             val:'webdeveloper',
-            font:'Calibri'
+            style:{
+                font:'Calibri',
+                fontSize:'16px',
+                textAlign:'center'
+            }
         },
         email: {
             icon:'envelope',
             val:'muecahid@dayan.one',
-            font:'Avant',
+            style:{
+                font:'Avant',
+            }
         },
         phone: {
             icon: 'phone',
             val:'32',
-            font:'Century',
+            style:{
+                font:'Century',
+            }
         },
         homepage: {
             icon:'home',
             val:'https://mücahiddayan.com',
-            font:'Arial',
+            style:{
+                font:'Arial',
+            }
         },
         skills:[
             {
                 rate:10,
                 label:'javascript',
-                font:'Arial',
+                style:{
+                    font:'Arial',
+                }
             },
             {
                 rate:10,
                 label:'HTML5',
-                font:'Arial',
+                style:{
+                    font:'Arial',
+                }
             },
         ]
     };
@@ -596,6 +632,7 @@ function initToObject(obj,path,init,splitter='.'){
     }
     
     var i;
+    if(!path || typeof path != 'string')return;
     path = path.split(splitter);
     for (i = 0; i < path.length - 1; i++){
         obj = obj[path[i]];

@@ -1,14 +1,14 @@
-<h1 id="personal_name" ng-bind="personal.name.val" cv-editable data-type="name.val" class="cv-editable" ng-style="{fontFamily:personal.name.font}"></h1>
-<h2 id="personal_prof" ng-bind="personal.prof.val" cv-editable data-type="prof.val" class="cv-editable" ng-style="{fontFamily:personal.prof.font}"></h2>
+<h1 class="personal-name" id="personal_name" cv-bind="personal.name.val" cv-editable cv-type="name.val" class="cv-editable" cv-style="personal.name.style"></h1>
+<h2 class="personal-prof" id="personal_prof" cv-bind="personal.prof.val" cv-editable cv-type="prof.val" class="cv-editable" cv-style="personal.prof.style"></h2>
 <div class="editable-wrapper">
     <icon-selector icons="icons" for="email" selected="personal.email.icon"></icon-selector>
-    <span id="personal_email" ng-bind="personal.email.val" cv-editable data-type="email.val" class="cv-editable" ng-style="{fontFamily:personal.email.font}"></span>
+    <span id="personal_email" cv-bind="personal.email.val" cv-editable cv-type="email.val" class="cv-editable" cv-style="personal.email.style"></span>
 </div>
 <div class="editable-wrapper">
     <icon-selector icons="icons" for="phone" selected="personal.phone.icon"></icon-selector>
-    <span id="personal_phone" ng-bind="personal.phone.val" cv-editable data-type="phone.val" class="cv-editable" ng-style="{fontFamily:personal.phone.font}"></span>
+    <span id="personal_phone" cv-bind="personal.phone.val" cv-editable cv-type="phone.val" class="cv-editable" cv-style="personal.phone.style" ></span>
 </div>
 <div class="editable-wrapper">
     <icon-selector icons="icons" for="homepage" selected="personal.homepage.icon"></icon-selector>
-    <span id="personal_homepage" ng-bind="personal.homepage.val" cv-editable data-type="homepage.val" class="cv-editable" ng-style="{fontFamily:personal.homepage.font}"></span>
+    <span id="personal_homepage" cv-bind="personal.homepage.val" cv-editable cv-type="homepage.val" class="cv-editable" cv-style="personal.homepage.style"></span>
 </div>
