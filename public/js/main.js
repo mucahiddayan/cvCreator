@@ -327,7 +327,7 @@ app.directive('cvEditable',['dataService','$document','$compile','$rootScope',(d
         scope.openContextMenu = (event,style)=>{
             console.log(event,style);
             let menu = `
-                <div class="context-menu-wrapper">
+                <div class="context-menu-wrapper" style="left:${event.pageX}px;top:${event.pageY}px">
                     <div id="context-menu">
                     <ul class="menu">
                         <li class="menu-item">
@@ -350,7 +350,7 @@ app.directive('cvEditable',['dataService','$document','$compile','$rootScope',(d
             if(i= document.querySelector('.context-menu-wrapper')){
                i.remove();
             }else{
-                angular.element(event.target).after($compile(menu)(scope));
+                angular.element(document.body).append($compile(menu)(scope));
             }
             
         }
