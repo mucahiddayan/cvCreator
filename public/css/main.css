@@ -169,13 +169,11 @@ body {
       body a4 personal #personal_name, body a4 personal #personal_prof {
         width: 100%; }
     body a4 .skill {
-      width: 80%;
-      width: 80%;
+      width: 100%;
       display: block;
       margin: 5px auto;
       padding: 3px;
       border: none;
-      border-bottom: 1px solid #1acee6;
       outline: none; }
     body a4 .add-rating-wrapper {
       text-align: center;
@@ -229,12 +227,11 @@ body {
   body .selected {
     width: 100%;
     height: 100%;
-    margin: 1px 0px; }
+    margin: 1px 0px;
+    line-height: 30px; }
   body .search {
     margin: 5px; }
 
 @media print {
   .not-in-print {
     display: none !important; } }
-
-/*# sourceMappingURL=main.css.map */

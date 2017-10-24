@@ -124,8 +124,8 @@ app.directive('rate',()=>{
         scope.add = ()=>{
             var sk = prompt('Add skill:point');
             if(sk && /:/.test(sk)){
-                var skill = stringToParam('label:rate:color',sk.split(':'));
-                
+                var skill = stringToParam('label:rate:style.color:style.fontFamily:style.fontSize',sk.split(':'),true);
+                console.log(skill);
                 var index = scope.skills.findIndex(e=>e.label.toLowerCase() == skill.label.toLowerCase());
                 if(index > -1){
                     angular.extend(scope.skills[index],skill);
@@ -164,12 +164,12 @@ app.directive('rate',()=>{
     
     let template = (el,attr)=>{
         return `<div class="add-rating-wrapper"><span class="add-rating" ng-click="add()"><i class="fa fa-plus not-in-print"></i></span></div>
-        <div class="rate-circle-wrapper" id="rate-circle" ng-repeat="(ind,skill) in skills track by $index">
+        <div class="skill rate-circle-wrapper" id="rate-circle" ng-repeat="(ind,skill) in skills track by $index">
         <span 
         ng-focus="startEditing($event)"
         ng-blur="stopEditing($event)"
         ng-click="startEditing($event)"
-        class="skill"                   
+        class="skill-input"                   
         cv-font="skill.font"
         cv-type="skills.{{ind}}.label"
         cv-bind="skill.label"
@@ -256,7 +256,7 @@ app.directive('iconSelector',['$filter',($filter)=>{
     
     let template = (el,attr)=>{
         return `<div class="icon-selector-wrapper">        
-        <div class="selected" ng-click="openBox()"><i class="fa fa-{{selected}}"></i></div>
+        <div class="selected" ng-click="openBox()"><i class="fa fa-{{selected}}" ng-style="{fontSize:fontSize}"></i></div>
         <div class="icon-selector" ng-show="opened" ng-class="{'opened':opened}">
         <input type="text" class="search" ng-model="search">            
         <div class="font-item" ng-repeat="f in icons | filter:search track by $index" ng-click="select(f,'${attr.for}')" title="{{f}}"><i  class="fa fa-{{f}}"></i></div>
@@ -268,7 +268,8 @@ app.directive('iconSelector',['$filter',($filter)=>{
         scope: {
             icons: '=',
             selected: '=',
-            for:'='      
+            for:'=',
+            fontSize:'='    
         },
         link:link,
         template:template
@@ -304,7 +305,7 @@ app.directive('cvEditable',['dataService','$document','$compile','$rootScope',(d
             console.log(el.target.value);
             save(el.target.value,scope.cvType);     
         }
-
+        
         scope.selectFontFamily = (f)=>{
             console.log(f);
             var type= scope.cvType.split(/([^\.]*)$/)[0]+'style.fontFamily';
@@ -314,7 +315,7 @@ app.directive('cvEditable',['dataService','$document','$compile','$rootScope',(d
             save(f,type);
             // $rootScope.$broadcast('contextmenu/fontFamily');
         }
-
+        
         scope.selectFontSize = (f)=>{
             console.log(f,scope.cvType);
             scope.cvStyle.fontSize = f;
@@ -327,29 +328,29 @@ app.directive('cvEditable',['dataService','$document','$compile','$rootScope',(d
         scope.openContextMenu = (event,style)=>{
             console.log(event,style);
             let menu = `
-                <div class="context-menu-wrapper" style="left:${event.pageX}px;top:${event.pageY}px">
-                    <div id="context-menu">
-                    <ul class="menu">
-                        <li class="menu-item">
-                            Font Size
-                            <ul class="sub-menu">                            
-                            <li class="menu-item" ng-click="selectFontSize(i+'px')" ng-repeat="i in [] |range:8:50:2 track by $index" ng-class="{selected:i == selectedSize.replace('px','')}">{{i}}px</li>
-                            </ul>
-                        </li>
-                        <li class="menu-item">
-                        Font Family
-                        <ul class="sub-menu">
-                        <input type="text" ng-model="searchFamily" />
-                        <li class="menu-item" ng-click="selectFontFamily(i)" ng-repeat="i in fonts |filter:searchFamily track by $index" ng-class="{selected:i == selectedFamily}">{{i}}</li>
-                        </ul>
-                    </li>
-                    </ul>
-                    </div>
-                </div>
+            <div class="context-menu-wrapper" style="left:${event.pageX}px;top:${event.pageY}px">
+            <div id="context-menu">
+            <ul class="menu">
+            <li class="menu-item">
+            Font Size
+            <ul class="sub-menu">                            
+            <li class="menu-item" ng-click="selectFontSize(i+'px')" ng-repeat="i in [] |range:8:50:2 track by $index" ng-class="{selected:i == selectedSize.replace('px','')}">{{i}}px</li>
+            </ul>
+            </li>
+            <li class="menu-item">
+            Font Family
+            <ul class="sub-menu">
+            <input type="text" ng-model="searchFamily" />
+            <li class="menu-item" ng-click="selectFontFamily(i)" ng-repeat="i in fonts |filter:searchFamily track by $index" ng-class="{selected:i == selectedFamily}">{{i}}</li>
+            </ul>
+            </li>
+            </ul>
+            </div>
+            </div>
             `;
-
+            
             if(i= document.querySelector('.context-menu-wrapper')){
-               i.remove();
+                i.remove();
             }else{
                 angular.element(document.body).append($compile(menu)(scope));
             }
@@ -631,9 +632,12 @@ function initToObject(obj,path,init,splitter='.'){
     if(!new RegExp(splitter).test(path)){
 		return obj[path] = init;
     }
-    
+    if(!obj){
+        console.warn('object is empty');
+        obj = {};
+    };
     var i;
-    if(!path || typeof path != 'string')return;
+    if(!path || typeof path != 'string'){console.warn('Path is not a String or empty');return;}
     path = path.split(splitter);
     for (i = 0; i < path.length - 1; i++){
         obj = obj[path[i]];
@@ -646,15 +650,58 @@ function initToObject(obj,path,init,splitter='.'){
     return obj;
 }
 
-function stringToParam(str,values,splitter=':'){
+function createDeepObject(path,init,splitter='.'){
+    let obj = {};     
+    
+    let run = (path,init)=>{
+        let obj = {}; 
+        if(!new RegExp(splitter).test(path)){
+            return obj[path] = init;
+        }  
+        let temp = path.split(splitter);
+        if(init != ''){
+            obj[temp[temp.length-1]] = init;
+        }        
+        temp.splice(temp.length-1,1);
+        console.log(obj,temp);
+        return run(temp.join(splitter),obj);
+    }
+    
+    obj = run(path,init);
+    
+    return obj;
+    
+}
+
+function stringToParam(str,values,allowEmpty=false,splitter=':'){
     if(str == '')return;
     str = str.split(splitter);
     var obj = {};
     
     for(let i = 0; i< str.length; i ++){
-        if(values[i]){
-            obj[str[i]] = values[i]
+        if(!allowEmpty){
+            if(values[i]){
+                if(/\./.test(str[i])){
+                    console.log(str[i],values[i]);
+                    obj = Object.assign(obj,createDeepObject(str[i],values[i]));
+                }else{
+                    obj[str[i]] = values[i];
+                }
+            }
+        }else{
+            if(/\./.test(str[i])){
+                console.log(str[i],values[i]);
+                obj = Object.assign(obj,createDeepObject(str[i],values[i]));
+            }else{
+                obj[str[i]] = values[i];
+            }
         }
     }
     return obj;
+}
+
+function mergeUniq(...arrs){
+    let uniq = [];
+    let temp = arrs[0].concat(...arrs).map((e,ind,arr)=>{if(!uniq.includes(e)){uniq.push(e);}});
+    console.log(uniq);
 }
