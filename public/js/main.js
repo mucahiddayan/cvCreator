@@ -702,6 +702,8 @@ function stringToParam(str,values,allowEmpty=false,splitter=':'){
 
 function mergeUniq(...arrs){
     let uniq = [];
-    let temp = arrs[0].concat(...arrs).map((e,ind,arr)=>{if(!uniq.includes(e)){uniq.push(e);}});
+    arrs[0].concat(...arrs).map(e=>{if(!uniq.includes(e)){uniq.push(e);}});
     console.log(uniq);
 }
+
+// TO DO mergeDeepobject
